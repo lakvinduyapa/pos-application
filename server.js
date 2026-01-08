@@ -14,6 +14,8 @@ const sequelize = require("./config/database");
 // Routes
 const authRoutes = require("./routes/auth");
 const productRoutes = require("./routes/productsroute");
+const salesRoutes = require("./routes/salesroute");
+
 
 // Test route
 app.get("/", (req, res) => {
@@ -23,7 +25,7 @@ app.get("/", (req, res) => {
 // API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
-
+app.use("/api/sales", salesRoutes);
 // ✅ CONNECT + SYNC DATABASE
 sequelize.authenticate()
   .then(() => {
