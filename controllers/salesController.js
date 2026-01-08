@@ -1,4 +1,5 @@
 const { Sale, SaleItem, Product } = require("../models");
+const { Op } = require("sequelize"); // Needed for low stock query
 
 // CREATE SALE (checkout)
 exports.createSale = async (req, res) => {
@@ -57,6 +58,11 @@ exports.createSale = async (req, res) => {
       // Reduce stock
       product.stock -= item.quantity;
       await product.save();
+
+      // Low stock warning
+      if (product.stock <= 5) {
+        console.warn(`Warning: Low stock for ${product.name} (${product.stock} left)`);
+      }
     }
 
     res.json({ message: "Sale completed", saleId: sale.id });
@@ -66,7 +72,7 @@ exports.createSale = async (req, res) => {
   }
 };
 
-// GET single sale (invoice)
+// GET single sale (by ID)
 exports.getSaleById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -84,6 +90,56 @@ exports.getAllSales = async (req, res) => {
   try {
     const sales = await Sale.findAll({ include: SaleItem, order: [["createdAt", "DESC"]] });
     res.json(sales);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+// GET sale invoice
+exports.getSaleInvoice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const sale = await Sale.findByPk(id, {
+      include: {
+        model: SaleItem,
+        include: Product
+      }
+    });
+
+    if (!sale) return res.status(404).json({ message: "Sale not found" });
+
+    // Format invoice
+    const invoice = {
+      saleId: sale.id,
+      cashier: sale.cashier,
+      totalAmount: sale.totalAmount,
+      discountAmount: sale.discountAmount,
+      taxAmount: sale.taxAmount,
+      finalAmount: sale.finalAmount,
+      items: sale.SaleItems.map(item => ({
+        productName: item.Product.name,
+        quantity: item.quantity,
+        unitPrice: item.price,
+        total: item.price * item.quantity
+      }))
+    };
+
+    res.json(invoice);
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+};
+
+// GET low-stock products
+exports.getLowStockProducts = async (req, res) => {
+  try {
+    const lowStockProducts = await Product.findAll({
+      where: {
+        stock: { [Op.lte]: 5 }
+      }
+    });
+
+    res.json(lowStockProducts);
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });
   }
