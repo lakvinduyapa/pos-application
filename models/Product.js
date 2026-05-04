@@ -7,25 +7,58 @@ const Product = sequelize.define("Product", {
     autoIncrement: true,
     primaryKey: true,
   },
+
   name: {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  price: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
+
+  barcode: {
+    type: DataTypes.STRING,
+    unique: true,
+    allowNull: true,
   },
+
+  price: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: false,
+    validate: {
+      min: 0,
+    },
+  },
+
   stock: {
     type: DataTypes.INTEGER,
+    allowNull: false,
     defaultValue: 0,
+    validate: {
+      min: 0,
+    },
   },
+
   discount: {
-    type: DataTypes.FLOAT, // percentage
+    type: DataTypes.DECIMAL(5, 2),
+    allowNull: false,
     defaultValue: 0,
+    validate: {
+      min: 0,
+      max: 100,
+    },
   },
+
   tax: {
-    type: DataTypes.FLOAT, // percentage
+    type: DataTypes.DECIMAL(5, 2),
+    allowNull: false,
     defaultValue: 0,
+    validate: {
+      min: 0,
+      max: 100,
+    },
+  },
+
+  isActive: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
   },
 }, {
   tableName: "products",

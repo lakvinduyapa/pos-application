@@ -1,12 +1,41 @@
+const User = require("./User");
 const Sale = require("./Sale");
 const SaleItem = require("./SaleItem");
 const Product = require("./Product");
 
-// Relationships
-Sale.hasMany(SaleItem, { onDelete: "CASCADE" });
-SaleItem.belongsTo(Sale);
+// User → Sales
+User.hasMany(Sale, {
+  foreignKey: "cashierId",
+  as: "sales",
+});
 
-Product.hasMany(SaleItem);
-SaleItem.belongsTo(Product);
+Sale.belongsTo(User, {
+  foreignKey: "cashierId",
+  as: "cashier",
+});
 
-module.exports = { Sale, SaleItem, Product };
+// Sale → SaleItems
+Sale.hasMany(SaleItem, {
+  foreignKey: "saleId",
+  onDelete: "CASCADE",
+});
+
+SaleItem.belongsTo(Sale, {
+  foreignKey: "saleId",
+});
+
+// Product → SaleItems
+Product.hasMany(SaleItem, {
+  foreignKey: "productId",
+});
+
+SaleItem.belongsTo(Product, {
+  foreignKey: "productId",
+});
+
+module.exports = {
+  User,
+  Sale,
+  SaleItem,
+  Product,
+};

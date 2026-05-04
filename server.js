@@ -11,11 +11,14 @@ app.use(cors());
 // Database
 const sequelize = require("./config/database");
 
+// Load model relationships
+require("./models");
+
 // Routes
 const authRoutes = require("./routes/auth");
 const productRoutes = require("./routes/productsroute");
 const salesRoutes = require("./routes/salesroute");
-
+const reportRoutes = require("./routes/reportsroute");
 
 // Test route
 app.get("/", (req, res) => {
@@ -26,21 +29,26 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/sales", salesRoutes);
-// ✅ CONNECT + SYNC DATABASE
+app.use("/api/reports", reportRoutes);
+
+// Database connection + sync
 sequelize.authenticate()
   .then(() => {
     console.log("Database connected successfully");
-    return sequelize.sync({ alter: true }); // TEMPORARY
+
+    // Development only. Later we will replace this with migrations.
+    return sequelize.sync({ alter: true });
   })
   .then(() => {
     console.log("All models synced");
   })
-  .catch(err => {
+  .catch((err) => {
     console.error("Database error:", err);
   });
 
 // Server
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
